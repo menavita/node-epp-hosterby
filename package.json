@@ -1,0 +1,23 @@
+{
+  "name": "node-epp-hosterby",
+  "version": "1.0.0",
+  "description": "EPP-protocol integration for Hoster.by",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": {
+    "name": "Egor Kuryanovich",
+    "email": "me@sontan.name",
+    "url": "sontan.name"
+  },
+  "repository": "https://github.com/Staronka/node-epp-hosterby",
+  "license": "MIT",
+  "dependencies": {
+    "data2xml": "^1.2.0",
+    "deferred": "^0.7.2",
+    "moment": "^2.9.0",
+    "q": "^1.1.2",
+    "xml2json": "^0.5.1"
+  }
+}
