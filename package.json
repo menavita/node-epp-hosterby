@@ -9,8 +9,15 @@
   "author": {
     "name": "Egor Kuryanovich",
     "email": "me@sontan.name",
-    "url": "sontan.name"
+    "url": "http://sontan.name"
   },
+  "keywords": [
+    "epp",
+    "domains",
+    "hoster.by",
+    "belarus",
+    "BY"
+  ],
   "repository": "https://github.com/Staronka/node-epp-hosterby",
   "license": "MIT",
   "dependencies": {
