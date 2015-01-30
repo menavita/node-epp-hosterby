@@ -6,11 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": {
-    "name": "Egor Kuryanovich",
-    "email": "me@sontan.name",
-    "url": "http://sontan.name"
-  },
+  "author": "Egor Kuryanovich <me@sontan.name> (http://sontan.name)",
   "keywords": [
     "epp",
     "domains",
@@ -18,7 +14,10 @@
     "belarus",
     "BY"
   ],
-  "repository": "https://github.com/Staronka/node-epp-hosterby",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Staronka/node-epp-hosterby"
+  },
   "license": "MIT",
   "dependencies": {
     "data2xml": "^1.2.0",
@@ -26,5 +25,10 @@
     "moment": "^2.9.0",
     "q": "^1.1.2",
     "xml2json": "^0.5.1"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/Staronka/node-epp-hosterby/issues"
+  },
+  "homepage": "https://github.com/Staronka/node-epp-hosterby",
+  "devDependencies": {}
 }
