@@ -97,8 +97,8 @@ HosterBY.prototype.createContact = function(contactInfo)
     "xmlns:contact": this.credential.namespaces.contact.xmlns,
     "xsi:schemaLocation": "urn:ietf:params:xml:ns:contact-1.0 contact-1.0.xsd"
   };
-  contactInfoCompiled["create"]["contact:create"]["contact:postalInfo"]["_attr"] = { "type": 'int' };
-  contactInfoCompiled["extension"]["by-ext-contact:create"]["_attr"] = { "xmlns:by-ext-contact": this.credential.namespaces.extension.xmlns };
+  contactInfoCompiled["create"]["contact:create"]["contact:postalInfo"]["_attr"] = { "type": 'loc' };
+  contactInfoCompiled["extension"]["by-ext-contact:create"]["_attr"] = this.credential.namespaces.extension;
 
   state.connection.initStream().then(function() 
   {
