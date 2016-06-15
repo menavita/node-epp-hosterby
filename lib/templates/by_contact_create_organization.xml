@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="urn:ietf:params:xml:ns:epp-1.0
+     epp-1.0.xsd">
+  <command>
+    <create>
+      <contact:create xmlns:contact="urn:ietf:params:xml:ns:contact-1.0" 
+      xsi:schemaLocation="urn:ietf:params:xml:ns:contact-1.0 contact-1.0.xsd">
+        <contact:id>$(contactId)$</contact:id>
+        <contact:postalInfo type="loc">
+          <contact:name>$(contactPostalInfoName)$</contact:name>
+          <contact:addr>
+            <contact:street>$(contactPostalInfoAddrStreet)$</contact:street>
+            <contact:city>$(contactPostalInfoAddrCity)$</contact:city>
+            <contact:pc>$(contactPostalInfoAddrPC)$</contact:pc>
+            <contact:cc>$(contactPostalInfoAddrCC)$</contact:cc>
+          </contact:addr>
+          <contact:org>$(contactPostalInfoOrg)$</contact:org>
+        </contact:postalInfo>
+        <contact:voice>$(contactVoice)$</contact:voice>
+        <contact:email>$(contactEmail)$</contact:email>
+      </contact:create>
+    </create>
+    <extension>
+      <by-ext-contact:create xmlns:by-ext-contact="http://www.hoster.by/xsd/by-ext-contact-1.0" 
+      xsi:schemaLocation="http://www.hoster.by/xsd/by-ext-contact-1.0 by-ext-contact-1.0.xsd">
+        <by-ext-contact:type>$(extensionType)$</by-ext-contact:type>
+        <by-ext-contact:unp>$(extensionUNP)$</by-ext-contact:unp>
+        <by-ext-contact:erg_number>$(extensionErgNumber)$</by-ext-contact:erg_number>
+        <by-ext-contact:erg_org>$(extensionErgOrg)$</by-ext-contact:erg_org>
+        <by-ext-contact:erg_resh/>
+        <by-ext-contact:erg_date>$(extensionErgDate)$</by-ext-contact:erg_date>
+      </by-ext-contact:create>
+    </extension>
+    <clTRID>$(clTRID)$</clTRID>
+  </command>
+</epp>

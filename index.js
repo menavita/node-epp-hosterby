@@ -1,8 +1,8 @@
 'use strict';
 
-var ProtocolState = require('./lib/protocol-state.js');
+var EPP = require('./lib/epp');
+var Q = require('q');
 var moment = require('moment');
-var deferred = require('deferred');
 
 function HosterBY (credential) 
 {
@@ -12,233 +12,194 @@ function HosterBY (credential)
 
 HosterBY.prototype.checkDomain = function(domainName)
 {
-  var self = this;
-  var d = deferred();
-  var state = new ProtocolState('hosterby', this.credential);
+  var epp = new EPP(this.credential);
+  var d = Q.defer();
 
-  state.connection.initStream().then(function() 
-  {
-    state.login({ "login": self.credential.login, "password": self.credential.password }, ['login', moment().unix()].join('-'))
-    .then(
-      function(result) 
-      {
-        state.command('checkDomain', { name: domainName }, ['checkDomain', moment().unix()].join('-') )
-        .then(
-          function(result) 
-          { 
-            d.resolve(result.data['domain:chkData']['domain:cd']['domain:name']); 
-            state.command('logout', null, ['logout', moment().unix()].join('-')); 
-          },
-          function(error) 
-          { 
-            d.reject(error); 
-            state.command('logout', null, ['logout', moment().unix()].join('-')); 
-          });
-      },
-      function(error) 
-      { 
-        d.reject(error); 
-        state.command('logout', null, ['logout', moment().unix()].join('-')); 
-      });
+  epp.hello().then(function (data) {
+    console.log('hello:', data);
+    epp.login().then(function (data) {
+      console.log('login:', data);
+      epp.domain_check(domainName).then(function (data) {
+          console.log('domain_check:', data);
+          d.resolve(data);
+          epp.logout();
+        }).catch(function (err) {
+          console.log('domain_check: Error', err);
+          d.reject(err);
+          epp.logout();
+        });
+    }).catch(function (err) {
+      console.log('login: Error', err);
+
+      d.reject(err);
+      epp.logout();
+    });
+  }).catch(function (err) {
+    console.log('hello: Error', err);
+    d.reject(err);
+    epp.logout();
   });
 
   return d.promise;
 }
 
-HosterBY.prototype.createDomain = function(domainName, contactId, domainTerm)
+HosterBY.prototype.createDomain = function(domainName, contactId, domainTerm, domainNS)
 {
-  var self = this;
-  var d = deferred();
-  var state = new ProtocolState('hosterby', this.credential);
+  var epp = new EPP(this.credential);
+  var d = Q.defer();
 
-  var domainInfoCompiled = {
-    name: domainName, 
-    registrant: contactId, 
-    period: domainTerm, 
-    ns: { "domain:hostObj": ['ns1.staronka.by','ns2.staronka.by'] } 
-  };
-  
-  state.connection.initStream().then(function() 
-  {
-    state.login({ "login": self.credential.login, "password": self.credential.password }, ['login', moment().unix()].join('-'))
-    .then(
-      function(result) 
-      {
-        //console.log(result);
-        state.execute('createDomain', domainInfoCompiled, ['createDomain', moment().unix()].join('-') )
-        .then(
-          function(result) 
-          { 
-            //console.log('result');
-            d.resolve(result.data);
-            state.command('logout', null, ['logout', moment().unix()].join('-'));
-          },
-          function(error) 
-          { 
-            //console.log('error');
-            d.reject(error); 
-            state.command('logout', null, ['logout', moment().unix()].join('-'));
-          });
-      },
-      function(error) 
-      { 
-        //console.log('error2');
-        d.reject(error); 
-        state.command('logout', null, ['logout', moment().unix()].join('-'));
-      });
+  epp.hello().then(function (data) {
+    console.log('hello:', data);
+    epp.login().then(function (data) {
+      console.log('login:', data);
+      epp.domain_create(domainName, contactId, domainTerm, domainNS).then(function (data) {
+          console.log('domain_create:', data);
+          d.resolve(data);
+          epp.logout();
+        }).catch(function (err) {
+          console.log('domain_create: Error', err);
+          d.reject(err);
+          epp.logout();
+        });
+    }).catch(function (err) {
+      console.log('login: Error', err);
+      d.reject(err);
+      epp.logout();
+    });
+  }).catch(function (err) {
+    console.log('hello: Error', err);
+    d.reject(err);
+    epp.logout();
   });
 
   return d.promise;
 }
 
-
-HosterBY.prototype.createContact = function(contactInfo)
+HosterBY.prototype.renewDomain = function(domainName, domainTerm)
 {
-  //console.log(contactInfo);
-  var self = this;
-  var d = deferred();
-  var state = new ProtocolState('hosterby', this.credential);
+  var epp = new EPP(this.credential);
+  var d = Q.defer();
 
-  var contactInfoCompiled = {
-    "create": { "contact:create": contactInfo['contact'] },
-    "extension": { "by-ext-contact:create": contactInfo['extension'] }
-  };
-  contactInfoCompiled["create"]["contact:create"]["_attr"] = 
-  { 
-    "xmlns:contact": this.credential.namespaces.contact.xmlns,
-    "xsi:schemaLocation": "urn:ietf:params:xml:ns:contact-1.0 contact-1.0.xsd"
-  };
-  contactInfoCompiled["create"]["contact:create"]["contact:postalInfo"]["_attr"] = { "type": 'loc' };
-  contactInfoCompiled["extension"]["by-ext-contact:create"]["_attr"] = this.credential.namespaces.extension;
-
-  state.connection.initStream().then(function() 
-  {
-    state.login({ "login": self.credential.login, "password": self.credential.password }, ['login', moment().unix()].join('-'))
-    .then(
-      function(result) 
-      {
-        state.execute('createContact', contactInfoCompiled, ['createContact', moment().unix()].join('-') )
-        .then(
-          function(result) 
-          { 
-            //console.log('createContact.resolve');
-            d.resolve(result); 
-            state.command('logout', null, ['logout', moment().unix()].join('-'));
-          },
-          function(error) 
-          { 
-            //console.log('createContact.reject');
-            d.reject(error); 
-            state.command('logout', null, ['logout', moment().unix()].join('-'));
-          });
-      },
-      function(error) 
-      { 
-        d.reject(error);
-        state.command('logout', null, ['logout', moment().unix()].join('-'));
-      });
+  epp.hello().then(function (data) {
+    console.log('hello:', data);
+    epp.login().then(function (data) {
+      console.log('login:', data);
+      epp.domain_renew(domainName, domainTerm).then(function (data) {
+          console.log('domain_renew:', data);
+          d.resolve(data);
+          epp.logout();
+        }).catch(function (err) {
+          console.log('domain_renew: Error', err);
+          d.reject(err);
+          epp.logout();
+        });
+    }).catch(function (err) {
+      console.log('login: Error', err);
+      d.reject(err);
+      epp.logout();
+    });
+  }).catch(function (err) {
+    console.log('hello: Error', err);
+    d.reject(err);
+    epp.logout();
   });
 
   return d.promise;
 }
-
-
-HosterBY.prototype.updateContact = function(contactId, contactInfo)
-{
-  var self = this;
-  var d = deferred();
-  var state = new ProtocolState('hosterby', this.credential);
-
-  var contactInfoCompiled = 
-  {
-    "update": 
-    {
-      "contact:update": {
-        "_attr": 
-        {
-            "xmlns:contact": this.credential.namespaces.contact.xmlns,
-            "xsi:schemaLocation": "urn:ietf:params:xml:ns:contact-1.0 contact-1.0.xsd"
-
-        },
-        "contact:id": contactId,
-        "contact:chg": contactInfo['contact']
-      }
-    },
-    "extension": { "by-ext-contact:update": contactInfo['extension'] }
-  };
-/*
-  contactInfoCompiled["create"]["contact:update"]["_attr"] = 
-  { 
-    "xmlns:contact": this.credential.namespaces.contact.xmlns,
-    "xsi:schemaLocation": "urn:ietf:params:xml:ns:contact-1.0 contact-1.0.xsd"
-  };
-  contactInfoCompiled["create"]["contact:create"]["contact:postalInfo"]["_attr"] = { "type": 'loc' };
-  contactInfoCompiled["extension"]["by-ext-contact:create"]["_attr"] = this.credential.namespaces.extension;
-*/
-  state.connection.initStream().then(function() 
-  {
-    state.login({ "login": self.credential.login, "password": self.credential.password }, ['login', moment().unix()].join('-'))
-    .then(
-      function(result) 
-      {
-        state.execute('updateContact', contactInfoCompiled, ['updateContact', moment().unix()].join('-') )
-        .then(
-          function(result) 
-          { 
-            //console.log('updateContact.resolve');
-            d.resolve(result); 
-            state.command('logout', null, ['logout', moment().unix()].join('-'));
-          },
-          function(error) 
-          { 
-            //console.log('updateContact.reject');
-            d.reject(error); 
-            state.command('logout', null, ['logout', moment().unix()].join('-'));
-          });
-      },
-      function(error) 
-      { 
-        d.reject(error);
-        state.command('logout', null, ['logout', moment().unix()].join('-'));
-      });
-  });
-
-  return d.promise;
-}
-
 
 HosterBY.prototype.infoContact = function(contactId)
 {
-  var self = this;
-  var d = deferred();
-  var state = new ProtocolState('hosterby', this.credential);
+  var epp = new EPP(this.credential);
+  var d = Q.defer();
 
-  state.connection.initStream().then(function() 
-  {
-    state.login({ "login": self.credential.login, "password": self.credential.password }, ['login', moment().unix()].join('-'))
-    .then(
-      function(result) 
-      {
-        state.execute('infoContact', {id:contactId }, ['infoContact', moment().unix()].join('-') )
-        .then(
-          function(result) 
-          { 
-            //console.log('infoContact.resolve');
-            d.resolve(result); 
-            state.command('logout', null, ['logout', moment().unix()].join('-'));
-          },
-          function(error) 
-          { 
-            //console.log('infoContact.reject');
-            d.reject(error); 
-            state.command('logout', null, ['logout', moment().unix()].join('-'));
-          });
-      },
-      function(error) 
-      { 
-        d.reject(error);
-        state.command('logout', null, ['logout', moment().unix()].join('-'));
-      });
+  epp.hello().then(function (data) {
+    console.log('hello:', data);
+    epp.login().then(function (data) {
+      console.log('login:', data);
+      epp.contact_info(contactId).then(function (data) {
+          console.log('contact_info:', data);
+          d.resolve(data);
+          epp.logout();
+        }).catch(function (err) {
+          console.log('contact_info: Error', err);
+          d.reject(err);
+          epp.logout();
+        });
+    }).catch(function (err) {
+      console.log('login: Error', err);
+      d.reject(err);
+      epp.logout();
+    });
+  }).catch(function (err) {
+    console.log('hello: Error', err);
+    d.reject(err);
+    epp.logout();
+  });
+
+  return d.promise;
+}
+
+HosterBY.prototype.createContact = function(contactInfo)
+{
+  var epp = new EPP(this.credential);
+  var d = Q.defer();
+
+  epp.hello().then(function (data) {
+    console.log('hello:', data);
+    epp.login().then(function (data) {
+      console.log('login:', data);
+      epp.contact_create(contactInfo).then(function (data) {
+          console.log('contact_create:', data);
+          d.resolve(data);
+          epp.logout();
+        }).catch(function (err) {
+          console.log('contact_create: Error', err);
+          d.reject(err);
+          epp.logout();
+        });
+    }).catch(function (err) {
+      console.log('login: Error', err);
+      d.reject(err);
+      epp.logout();
+    });
+  }).catch(function (err) {
+    console.log('hello: Error', err);
+    d.reject(err);
+    epp.logout();
+  });
+
+  return d.promise;
+}
+
+HosterBY.prototype.updateContact = function(contactId, contactInfo)
+{
+  var epp = new EPP(this.credential);
+  var d = Q.defer();
+
+  contactInfo['contactId'] = contactId;
+
+  epp.hello().then(function (data) {
+    console.log('hello:', data);
+    epp.login().then(function (data) {
+      console.log('login:', data);
+      epp.contact_update(contactInfo).then(function (data) {
+          console.log('contact_update:', data);
+          d.resolve(data);
+          epp.logout();
+        }).catch(function (err) {
+          console.log('contact_update: Error', err);
+          d.reject(err);
+          epp.logout();
+        });
+    }).catch(function (err) {
+      console.log('login: Error', err);
+      d.reject(err);
+      epp.logout();
+    });
+  }).catch(function (err) {
+    console.log('hello: Error', err);
+    d.reject(err);
+    epp.logout();
   });
 
   return d.promise;
