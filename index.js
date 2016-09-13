@@ -43,6 +43,39 @@ HosterBY.prototype.checkDomain = function(domainName)
   return d.promise;
 }
 
+HosterBY.prototype.infoDomain = function(domainName)
+{
+  var epp = new EPP(this.credential);
+  var d = Q.defer();
+
+  epp.hello().then(function (data) {
+    console.log('hello:', data);
+    epp.login().then(function (data) {
+      console.log('login:', data);
+      epp.domain_info(domainName).then(function (data) {
+          console.log('domain_check:', data);
+          d.resolve(data);
+          epp.logout();
+        }).catch(function (err) {
+          console.log('domain_check: Error', err);
+          d.reject(err);
+          epp.logout();
+        });
+    }).catch(function (err) {
+      console.log('login: Error', err);
+
+      d.reject(err);
+      epp.logout();
+    });
+  }).catch(function (err) {
+    console.log('hello: Error', err);
+    d.reject(err);
+    epp.logout();
+  });
+
+  return d.promise;
+}
+
 HosterBY.prototype.createDomain = function(domainName, contactId, domainTerm, domainNS)
 {
   var epp = new EPP(this.credential);

@@ -22,6 +22,9 @@ hoster.createDomain('старонка.бел', 1337, 2, ['ns1.staronka.by', 'ns2
 // Продление домена старонка.бел
 hoster.renewDomain('старонка.бел', 1).then(function(result){ ... });
 
+// Получение информации о домене
+hoster.infoDomain('старонка.бел').then(function(result){ ... })
+
 // Создание регистранта
 hoster.createContact(contact['entrepreneur']).then(function(result){ ... });
 // Информация о регистранте
